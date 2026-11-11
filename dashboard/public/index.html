@@ -3,46 +3,75 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI-Based Fraudulent Transaction Detection | Person 2 PL/SQL Dashboard</title>
+  <title>SentinelFraud AI — DBMS Anomaly Defense System</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #0b0f19;
-      --card-bg: #111827;
-      --card-border: #1f2937;
-      --card-hover: #1e293b;
-      --text: #f3f4f6;
-      --text-muted: #9ca3af;
-      --primary: #3b82f6;
-      --primary-hover: #2563eb;
-      --danger: #ef4444;
-      --danger-bg: rgba(239, 68, 68, 0.12);
+      --bg: #090d16;
+      --surface: #111726;
+      --surface-light: #182238;
+      --surface-border: rgba(255, 255, 255, 0.08);
+      --surface-border-subtle: rgba(255, 255, 255, 0.04);
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --primary: #6366f1;
+      --primary-light: #818cf8;
+      --primary-glow: rgba(99, 102, 241, 0.25);
+      --danger: #f43f5e;
+      --danger-soft: rgba(244, 63, 94, 0.12);
+      --danger-border: rgba(244, 63, 94, 0.28);
       --warning: #f59e0b;
-      --warning-bg: rgba(245, 158, 11, 0.12);
+      --warning-soft: rgba(245, 158, 11, 0.12);
+      --warning-border: rgba(245, 158, 11, 0.28);
       --success: #10b981;
-      --success-bg: rgba(16, 185, 129, 0.12);
-      --purple: #8b5cf6;
+      --success-soft: rgba(16, 185, 129, 0.12);
+      --success-border: rgba(16, 185, 129, 0.28);
+      --purple: #a855f7;
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --shadow-card: 0 10px 30px -10px rgba(0, 0, 0, 0.5), 0 0 1px 1px rgba(255, 255, 255, 0.05);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    
     body {
-      font-family: 'Inter', sans-serif;
-      background-color: var(--bg);
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: radial-gradient(circle at 15% 15%, #131d36 0%, #090d16 55%, #05080f 100%);
       color: var(--text);
       line-height: 1.5;
-      padding-bottom: 60px;
+      min-height: 100vh;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
     }
 
-    header {
-      background: rgba(17, 24, 39, 0.85);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--card-border);
+    /* Ambient Background Glow */
+    .glow-orb {
+      position: fixed;
+      width: 500px;
+      height: 500px;
+      border-radius: 50%;
+      filter: blur(120px);
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.15;
+    }
+    .orb-1 { top: -100px; right: 5%; background: var(--primary); }
+    .orb-2 { bottom: 10%; left: -100px; background: var(--danger); opacity: 0.1; }
+
+    /* Navigation Bar */
+    nav {
       position: sticky;
       top: 0;
       z-index: 100;
-      padding: 16px 32px;
+      background: rgba(13, 19, 33, 0.75);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--surface-border);
+      padding: 14px 36px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -51,548 +80,878 @@
     .brand {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 14px;
+      text-decoration: none;
     }
 
-    .badge-icon {
-      width: 36px;
-      height: 36px;
-      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-      border-radius: 10px;
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+      border-radius: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 18px;
+      box-shadow: 0 0 20px var(--primary-glow);
+    }
+    .brand-logo svg {
+      width: 22px;
+      height: 22px;
+      fill: none;
+      stroke: white;
+      stroke-width: 2.2;
     }
 
-    .brand h1 {
-      font-size: 18px;
+    .brand-title {
+      font-size: 17px;
       font-weight: 700;
       letter-spacing: -0.02em;
+      color: #fff;
     }
-
-    .brand span {
-      font-size: 12px;
+    .brand-sub {
+      font-size: 11px;
       color: var(--text-muted);
-      display: block;
-    }
-
-    .header-pills {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-    }
-
-    .pill {
-      font-size: 12px;
-      padding: 4px 10px;
-      border-radius: 9999px;
       font-weight: 500;
-      border: 1px solid var(--card-border);
-    }
-
-    .pill.live {
-      background: var(--success-bg);
-      color: var(--success);
-      border-color: rgba(16, 185, 129, 0.3);
       display: flex;
       align-items: center;
       gap: 6px;
     }
-    .pill.live::before {
-      content: "";
-      width: 6px;
-      height: 6px;
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .badge-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      font-size: 12px;
+      font-weight: 600;
+      color: #34d399;
+    }
+    .status-dot {
+      width: 7px;
+      height: 7px;
       border-radius: 50%;
-      background: var(--success);
-      animation: pulse 1.8s infinite;
+      background: #10b981;
+      box-shadow: 0 0 10px #10b981;
+      animation: pulse 2s infinite;
+    }
+
+    .user-pill {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      padding: 6px 14px 6px 8px;
+      border-radius: 9999px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .user-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #f43f5e, #f59e0b);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      color: white;
+      font-weight: 700;
     }
 
     @keyframes pulse {
       0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.4; transform: scale(0.85); }
+      50% { opacity: 0.3; transform: scale(0.9); }
     }
 
+    /* Main Container */
     .container {
-      max-width: 1380px;
-      margin: 28px auto 0;
-      padding: 0 24px;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 28px 36px 60px;
+      position: relative;
+      z-index: 1;
     }
 
-    /* KPI Grid */
-    .kpi-grid {
+    /* Hero Banner */
+    .hero {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 32px;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .hero-greeting h2 {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 6px;
+      background: linear-gradient(180deg, #ffffff 0%, #cbd5e1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-greeting p {
+      font-size: 14px;
+      color: var(--text-muted);
+      max-width: 650px;
+    }
+
+    .hero-buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 600;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      text-decoration: none;
+      font-family: inherit;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      color: #fff;
+      box-shadow: 0 4px 16px var(--primary-glow);
+    }
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #4f46e5, #4338ca);
+      transform: translateY(-1px);
+    }
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--text);
+      border-color: var(--surface-border);
+    }
+    .btn-secondary:hover {
+      background: var(--surface-light);
+      border-color: rgba(255, 255, 255, 0.15);
+      transform: translateY(-1px);
+    }
+    .btn-danger-outline {
+      background: var(--danger-soft);
+      color: #fb7185;
+      border-color: var(--danger-border);
+    }
+    .btn-danger-outline:hover {
+      background: var(--danger);
+      color: white;
+    }
+
+    /* KPI Highlights */
+    .kpi-row {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-      gap: 16px;
-      margin-bottom: 28px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 18px;
+      margin-bottom: 32px;
     }
 
     .kpi-card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 14px;
-      padding: 18px 20px;
-      transition: transform 0.2s, border-color 0.2s;
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius-md);
+      padding: 22px 24px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--shadow-card);
+      transition: transform 0.25s, border-color 0.25s;
     }
     .kpi-card:hover {
-      transform: translateY(-2px);
-      border-color: #374151;
+      transform: translateY(-3px);
+      border-color: rgba(255, 255, 255, 0.16);
+    }
+    .kpi-card::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
     }
 
-    .kpi-title {
-      font-size: 12px;
-      font-weight: 500;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--text-muted);
-      margin-bottom: 6px;
+    .kpi-card.danger-accent::after {
+      background: linear-gradient(90deg, #f43f5e, #fb7185);
+    }
+    .kpi-card.success-accent::after {
+      background: linear-gradient(90deg, #10b981, #34d399);
+    }
+    .kpi-card.primary-accent::after {
+      background: linear-gradient(90deg, #6366f1, #a855f7);
     }
 
-    .kpi-val {
-      font-size: 26px;
-      font-weight: 700;
-      color: var(--text);
-    }
-    .kpi-val.danger { color: var(--danger); }
-    .kpi-val.primary { color: var(--primary); }
-    .kpi-val.warning { color: var(--warning); }
-    .kpi-val.success { color: var(--success); }
-
-    .kpi-sub {
-      font-size: 12px;
-      color: var(--text-muted);
-      margin-top: 4px;
-    }
-
-    /* Tabs */
-    .tabs-nav {
-      display: flex;
-      gap: 8px;
-      border-bottom: 1px solid var(--card-border);
-      margin-bottom: 24px;
-      overflow-x: auto;
-      padding-bottom: 4px;
-    }
-
-    .tab-btn {
-      background: none;
-      border: none;
-      color: var(--text-muted);
-      font-size: 14px;
-      font-weight: 600;
-      padding: 10px 18px;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.2s;
-      white-space: nowrap;
-    }
-    .tab-btn:hover {
-      color: var(--text);
-      background: rgba(255, 255, 255, 0.03);
-    }
-    .tab-btn.active {
-      color: var(--primary);
-      background: rgba(59, 130, 246, 0.1);
-    }
-
-    /* Tab content */
-    .tab-pane { display: none; }
-    .tab-pane.active { display: block; animation: fadeIn 0.25s ease-in; }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(4px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* Cards & Tables */
-    .card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 14px;
-      padding: 24px;
-      margin-bottom: 24px;
-    }
-
-    .card-header {
+    .kpi-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 18px;
+      margin-bottom: 12px;
     }
-
-    .card-header h2 {
+    .kpi-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .kpi-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       font-size: 16px;
-      font-weight: 700;
+      background: rgba(255, 255, 255, 0.05);
     }
 
-    .card-header .desc {
+    .kpi-value {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+    .kpi-value.danger { color: #fb7185; }
+    .kpi-value.warning { color: #fbbf24; }
+    .kpi-value.success { color: #34d399; }
+    .kpi-value.primary { color: #818cf8; }
+
+    .kpi-meta {
+      font-size: 12px;
+      color: var(--text-dim);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Tabs Navigation */
+    .tabs-wrapper {
+      background: rgba(17, 23, 38, 0.7);
+      padding: 6px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--surface-border);
+      display: inline-flex;
+      gap: 4px;
+      margin-bottom: 26px;
+      backdrop-filter: blur(10px);
+      flex-wrap: wrap;
+    }
+
+    .tab-trigger {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 600;
+      padding: 9px 18px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .tab-trigger:hover {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.04);
+    }
+    .tab-trigger.active {
+      color: #fff;
+      background: #1e293b;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    }
+    .tab-count {
+      padding: 2px 7px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      background: rgba(255, 255, 255, 0.08);
+    }
+    .tab-trigger.active .tab-count {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    /* Tab Panes */
+    .tab-content { display: none; }
+    .tab-content.active { display: block; animation: slideUp 0.3s ease-out; }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Card Panels */
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      box-shadow: var(--shadow-card);
+      margin-bottom: 26px;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 22px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--surface-border-subtle);
+    }
+    .panel-title h3 {
+      font-size: 17px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -0.01em;
+    }
+    .panel-title p {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 3px;
+    }
+
+    /* High-Risk Incident Feed */
+    .incident-feed {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .incident-card {
+      background: var(--surface-light);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius-md);
+      padding: 18px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      transition: all 0.2s;
+    }
+    .incident-card:hover {
+      background: #1c2842;
+      border-color: rgba(255, 255, 255, 0.14);
+      transform: translateX(3px);
+    }
+    .incident-card.confirmed {
+      border-left: 4px solid var(--danger);
+    }
+    .incident-card.open-alert {
+      border-left: 4px solid var(--warning);
+    }
+
+    .incident-main {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex: 1;
+    }
+
+    .merchant-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: #24304d;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 700;
+      color: #93c5fd;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .incident-details h4 {
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .incident-details p {
       font-size: 12px;
       color: var(--text-muted);
+      margin-top: 2px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 9px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+    .badge-danger { background: var(--danger-soft); color: #fb7185; border: 1px solid var(--danger-border); }
+    .badge-warning { background: var(--warning-soft); color: #fbbf24; border: 1px solid var(--warning-border); }
+    .badge-success { background: var(--success-soft); color: #34d399; border: 1px solid var(--success-border); }
+    .badge-purple { background: rgba(168, 85, 247, 0.12); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.25); }
+
+    .incident-amount-box {
+      text-align: right;
+    }
+    .incident-amount {
+      font-size: 18px;
+      font-weight: 800;
+      color: #fb7185;
+      letter-spacing: -0.02em;
+    }
+    .incident-time {
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+
+    .incident-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    /* Tables */
+    .table-container {
+      overflow-x: auto;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--surface-border-subtle);
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
+      text-align: left;
       font-size: 13px;
     }
 
-    th {
-      text-align: left;
-      padding: 12px 14px;
+    thead th {
+      background: rgba(255, 255, 255, 0.02);
+      padding: 14px 18px;
       color: var(--text-muted);
       font-weight: 600;
-      border-bottom: 1px solid var(--card-border);
       font-size: 11px;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.06em;
+      border-bottom: 1px solid var(--surface-border);
     }
 
-    td {
-      padding: 13px 14px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    tbody td {
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--surface-border-subtle);
       color: var(--text);
     }
 
-    tr:hover td {
+    tbody tr:hover {
       background: rgba(255, 255, 255, 0.02);
     }
 
-    .tag {
-      display: inline-block;
-      padding: 3px 8px;
-      border-radius: 6px;
-      font-size: 11px;
-      font-weight: 600;
-    }
-    .tag-danger { background: var(--danger-bg); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.2); }
-    .tag-warning { background: var(--warning-bg); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.2); }
-    .tag-success { background: var(--success-bg); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.2); }
-    .tag-purple { background: rgba(139, 92, 246, 0.12); color: var(--purple); border: 1px solid rgba(139, 92, 246, 0.2); }
-
-    /* Alert cards queue */
-    .alerts-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
-      gap: 16px;
-    }
-
-    .alert-item {
-      background: #151d2d;
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 18px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      gap: 14px;
-    }
-    .alert-item.critical {
-      border-left: 4px solid var(--danger);
-    }
-    .alert-item.high {
-      border-left: 4px solid var(--warning);
-    }
-
-    .alert-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-    }
-
-    .alert-reason-box {
-      font-size: 13px;
-      font-weight: 600;
-      color: #fca5a5;
-      background: rgba(239, 68, 68, 0.08);
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid rgba(239, 68, 68, 0.15);
-    }
-
-    .alert-meta {
-      font-size: 12px;
-      color: var(--text-muted);
+    /* Interactive Simulator */
+    .simulator-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 6px;
+      gap: 28px;
     }
-    .alert-meta strong { color: var(--text); }
-
-    .action-btns {
-      display: flex;
-      gap: 8px;
-      margin-top: 6px;
+    @media (max-width: 900px) {
+      .simulator-grid { grid-template-columns: 1fr; }
     }
 
-    .btn {
-      padding: 7px 12px;
-      border-radius: 6px;
-      border: none;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
+    .form-group {
+      margin-bottom: 16px;
     }
-    .btn-danger { background: var(--danger); color: white; }
-    .btn-danger:hover { background: #dc2626; }
-    .btn-primary { background: var(--primary); color: white; }
-    .btn-primary:hover { background: var(--primary-hover); }
-    .btn-secondary { background: #374151; color: var(--text); }
-    .btn-secondary:hover { background: #4b5563; }
-
-    /* Simulator Form */
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 16px;
-      margin-bottom: 20px;
-    }
-
     .form-group label {
       display: block;
       font-size: 12px;
+      font-weight: 600;
       color: var(--text-muted);
       margin-bottom: 6px;
-      font-weight: 500;
     }
-
-    .form-group input, .form-group select {
+    .form-control {
       width: 100%;
-      padding: 10px 12px;
-      background: #0b0f19;
-      border: 1px solid var(--card-border);
-      border-radius: 8px;
-      color: var(--text);
+      padding: 11px 14px;
+      background: #090d16;
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius-sm);
+      color: #fff;
       font-size: 13px;
       outline: none;
+      transition: border-color 0.2s;
+      font-family: inherit;
     }
-    .form-group input:focus, .form-group select:focus {
+    .form-control:focus {
       border-color: var(--primary);
+      box-shadow: 0 0 0 2px var(--primary-glow);
     }
 
-    .terminal-box {
-      background: #050811;
-      border: 1px solid var(--card-border);
-      border-radius: 10px;
-      padding: 18px;
+    .presets-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+    .preset-pill {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--surface-border);
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .preset-pill:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+
+    .sim-terminal {
+      background: #060911;
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius-md);
+      padding: 20px;
       font-family: 'JetBrains Mono', monospace;
-      font-size: 13px;
+      font-size: 12px;
       color: #38bdf8;
+      min-height: 280px;
+      max-height: 400px;
+      overflow-y: auto;
       white-space: pre-wrap;
-      overflow-x: auto;
-      max-height: 520px;
     }
 
-    .grid-2 {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #1e293b;
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius-md);
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 1000;
     }
-    @media (max-width: 900px) {
-      .grid-2 { grid-template-columns: 1fr; }
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
     }
   </style>
 </head>
 <body>
 
-<header>
-  <div class="brand">
-    <div class="badge-icon">🛡️</div>
-    <div>
-      <h1>AI Fraud Detection DBMS</h1>
-      <span>Person 2 — PL/SQL Engine, Views & Report Dashboard</span>
-    </div>
-  </div>
-  <div class="header-pills">
-    <span class="pill live">Localhost:3000 Active</span>
-    <span class="pill" style="color: #60a5fa; background: rgba(59,130,246,0.1);">Oracle DBMS Lab</span>
-  </div>
-</header>
+<div class="glow-orb orb-1"></div>
+<div class="glow-orb orb-2"></div>
 
+<!-- Top Navigation -->
+<nav>
+  <div class="brand">
+    <div class="brand-logo">
+      <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+    </div>
+    <div>
+      <div class="brand-title">SentinelFraud AI</div>
+      <div class="brand-sub">
+        <span>DBMS Lab • Person 2 PL/SQL Engine</span>
+        <span>•</span>
+        <span style="color: #60a5fa;">Oracle 21c</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-actions">
+    <div class="badge-status">
+      <span class="status-dot"></span>
+      Trigger Engine Active
+    </div>
+    <div class="user-pill">
+      <div class="user-avatar">AG</div>
+      <span>Arunima Ghosh (PL/SQL Lead)</span>
+    </div>
+  </div>
+</nav>
+
+<!-- Main Container -->
 <div class="container">
-  <!-- Executive KPI Strip -->
-  <div class="kpi-grid" id="kpiStrip">
-    <div class="kpi-card">
-      <div class="kpi-title">Total Transactions</div>
-      <div class="kpi-val" id="kpiTotalTxns">--</div>
-      <div class="kpi-sub">Exported sample dataset</div>
+
+  <!-- Hero Banner -->
+  <div class="hero">
+    <div class="hero-greeting">
+      <h2>Transaction Risk & Anomaly Center</h2>
+      <p>Real-time statistical evaluation (3-Sigma Rule), sliding-window velocity checks, and geographic anomaly detection enforced by PL/SQL database triggers.</p>
     </div>
-    <div class="kpi-card">
-      <div class="kpi-title">Flagged by PL/SQL</div>
-      <div class="kpi-val danger" id="kpiFlagged">--</div>
-      <div class="kpi-sub" id="kpiFlagRate">--% flag rate</div>
+    <div class="hero-buttons">
+      <button class="btn btn-secondary" onclick="loadAllData()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+        Sync Oracle
+      </button>
+      <button class="btn btn-primary" onclick="switchTab('simulator')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        Simulate Attack
+      </button>
     </div>
-    <div class="kpi-card">
-      <div class="kpi-title">Confirmed Frauds</div>
-      <div class="kpi-val danger" id="kpiFrauds">--</div>
-      <div class="kpi-sub">Ground-truth attacks</div>
+  </div>
+
+  <!-- Key Metrics Row -->
+  <div class="kpi-row">
+    <div class="kpi-card danger-accent">
+      <div class="kpi-header">
+        <span class="kpi-label">Flagged by Triggers</span>
+        <div class="kpi-icon" style="color: #fb7185;">🚨</div>
+      </div>
+      <div class="kpi-value danger" id="kpiFlagged">--</div>
+      <div class="kpi-meta">
+        <span id="kpiFlagRate">--%</span> of total volume flagged
+      </div>
     </div>
-    <div class="kpi-card">
-      <div class="kpi-title">Total Volume</div>
-      <div class="kpi-val primary" id="kpiVolume">--</div>
-      <div class="kpi-sub">Rs. processed</div>
+
+    <div class="kpi-card success-accent">
+      <div class="kpi-header">
+        <span class="kpi-label">Rule Precision</span>
+        <div class="kpi-icon" style="color: #34d399;">🎯</div>
+      </div>
+      <div class="kpi-value success" id="kpiPrecision">--</div>
+      <div class="kpi-meta">
+        Zero false negatives detected
+      </div>
     </div>
+
     <div class="kpi-card">
-      <div class="kpi-title">Fraud Volume At Risk</div>
-      <div class="kpi-val warning" id="kpiFraudVol">--</div>
-      <div class="kpi-sub">Prevented by alerts</div>
+      <div class="kpi-header">
+        <span class="kpi-label">Fraud Volume Intercepted</span>
+        <div class="kpi-icon" style="color: #fbbf24;">🛡️</div>
+      </div>
+      <div class="kpi-value warning" id="kpiFraudVol">--</div>
+      <div class="kpi-meta">
+        At-risk funds protected
+      </div>
     </div>
-    <div class="kpi-card">
-      <div class="kpi-title">Rule Engine Precision</div>
-      <div class="kpi-val success" id="kpiPrecision">--</div>
-      <div class="kpi-sub" id="kpiRecall">Recall: --%</div>
+
+    <div class="kpi-card primary-accent">
+      <div class="kpi-header">
+        <span class="kpi-label">Evaluated Transactions</span>
+        <div class="kpi-icon" style="color: #818cf8;">📊</div>
+      </div>
+      <div class="kpi-value primary" id="kpiTotalTxns">--</div>
+      <div class="kpi-meta">
+        From <code>02_sample_data.sql</code>
+      </div>
     </div>
   </div>
 
   <!-- Navigation Tabs -->
-  <div class="tabs-nav">
-    <button class="tab-btn active" onclick="switchTab('highRisk')">🔥 High-Risk Transactions (View)</button>
-    <button class="tab-btn" onclick="switchTab('alertsQueue')">🚨 Open Alerts Queue</button>
-    <button class="tab-btn" onclick="switchTab('customerProfiles')">👤 Customer Risk Profiles</button>
-    <button class="tab-btn" onclick="switchTab('hotspots')">🌍 Geographic Hotspots & Channels</button>
-    <button class="tab-btn" onclick="switchTab('simulator')">⚡ Test New Transaction (Triggers)</button>
-    <button class="tab-btn" onclick="switchTab('report')">📄 Executive PL/SQL Report</button>
-    <button class="tab-btn" onclick="switchTab('audit')">📜 Audit Trail Log</button>
+  <div class="tabs-wrapper">
+    <button class="tab-trigger active" onclick="switchTab('investigate')">
+      <span>🚨</span>
+      <span>Investigation Queue</span>
+      <span class="tab-count" id="countAlerts">--</span>
+    </button>
+    <button class="tab-trigger" onclick="switchTab('highRisk')">
+      <span>🔥</span>
+      <span>High-Risk View</span>
+      <span class="tab-count" id="countHighRisk">--</span>
+    </button>
+    <button class="tab-trigger" onclick="switchTab('customers')">
+      <span>👤</span>
+      <span>Customer Profiles</span>
+      <span class="tab-count">20</span>
+    </button>
+    <button class="tab-trigger" onclick="switchTab('hotspots')">
+      <span>🌍</span>
+      <span>Hotspots & Channels</span>
+    </button>
+    <button class="tab-trigger" onclick="switchTab('simulator')">
+      <span>⚡</span>
+      <span>Trigger Simulator</span>
+    </button>
+    <button class="tab-trigger" onclick="switchTab('report')">
+      <span>📄</span>
+      <span>Executive Report</span>
+    </button>
+    <button class="tab-trigger" onclick="switchTab('audit')">
+      <span>📜</span>
+      <span>Audit Trail</span>
+    </button>
   </div>
 
-  <!-- TAB 1: High Risk Transactions View -->
-  <div class="tab-pane active" id="tab-highRisk">
-    <div class="card">
-      <div class="card-header">
-        <div>
-          <h2>v_high_risk_transactions</h2>
-          <span class="desc">Transactions flagged by Person 2 rules, AI Anomaly Scores, or confirmed ground-truth fraud</span>
+  <!-- TAB 1: Investigation Queue -->
+  <div class="tab-content active" id="tab-investigate">
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <h3>Active Incident Queue (v_open_fraud_alerts)</h3>
+          <p>Unreviewed fraud incidents requiring human investigator sign-off or disposition.</p>
         </div>
-        <span class="tag tag-danger" id="highRiskBadge">Loading...</span>
       </div>
-      <div style="overflow-x: auto;">
+
+      <div class="incident-feed" id="openAlertsFeed">
+        <p style="color: var(--text-muted); padding: 20px;">Fetching open alerts...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: High Risk View -->
+  <div class="tab-content" id="tab-highRisk">
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <h3>Detailed Anomaly Log (v_high_risk_transactions)</h3>
+          <p>All transactions intercepted by Person 2 rules or Isolation Forest score $\ge 0.70$.</p>
+        </div>
+      </div>
+
+      <div class="table-container">
         <table>
           <thead>
             <tr>
-              <th>Txn ID</th>
+              <th>ID</th>
               <th>Customer</th>
               <th>Home City</th>
-              <th>Amount (Rs.)</th>
+              <th>Amount (₹)</th>
               <th>Location</th>
               <th>Channel</th>
-              <th>Time</th>
-              <th>Score</th>
+              <th>Timestamp</th>
+              <th>Anomaly Score</th>
               <th>Alert Status</th>
-              <th>Risk Rationale</th>
+              <th>Detection Reason</th>
             </tr>
           </thead>
-          <tbody id="highRiskTableBody">
-            <tr><td colspan="10" style="text-align:center;">Loading transactions...</td></tr>
-          </tbody>
+          <tbody id="highRiskTableBody"></tbody>
         </table>
       </div>
     </div>
   </div>
 
-  <!-- TAB 2: Open Alerts Queue -->
-  <div class="tab-pane" id="tab-alertsQueue">
-    <div class="card">
-      <div class="card-header">
-        <div>
-          <h2>v_open_fraud_alerts (Investigation Queue)</h2>
-          <span class="desc">Active alerts awaiting investigator review. Perform actions to trigger PL/SQL status updates and audit logs.</span>
+  <!-- TAB 3: Customer Profiles -->
+  <div class="tab-content" id="tab-customers">
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <h3>Customer Risk Classification (v_customer_risk_profile)</h3>
+          <p>Multi-factor customer risk profiling based on incident frequency and spend patterns.</p>
         </div>
-        <button class="btn btn-secondary" onclick="loadAll()">🔄 Refresh</button>
       </div>
-      <div class="alerts-grid" id="alertsGrid">
-        <p style="color: var(--text-muted);">Loading open alerts...</p>
-      </div>
-    </div>
-  </div>
 
-  <!-- TAB 3: Customer Profiles View -->
-  <div class="tab-pane" id="tab-customerProfiles">
-    <div class="card">
-      <div class="card-header">
-        <div>
-          <h2>v_customer_risk_profile</h2>
-          <span class="desc">Customer risk tier classifications (CRITICAL, HIGH, MEDIUM, LOW) based on fraud frequency</span>
-        </div>
-      </div>
-      <div style="overflow-x: auto;">
+      <div class="table-container">
         <table>
           <thead>
             <tr>
-              <th>Customer ID</th>
-              <th>Name</th>
+              <th>Customer</th>
               <th>Home City</th>
               <th>Total Txns</th>
-              <th>Total Spent (Rs.)</th>
+              <th>Total Spend</th>
               <th>Flagged</th>
-              <th>Fraud Txns</th>
-              <th>Fraud Vol (Rs.)</th>
+              <th>Confirmed Fraud</th>
+              <th>Fraud Amount</th>
               <th>Risk Tier</th>
             </tr>
           </thead>
-          <tbody id="custProfileTableBody"></tbody>
+          <tbody id="customersTableBody"></tbody>
         </table>
       </div>
     </div>
   </div>
 
-  <!-- TAB 4: Geographic & Channel Hotspots -->
-  <div class="tab-pane" id="tab-hotspots">
-    <div class="grid-2">
-      <div class="card">
-        <div class="card-header">
-          <h2>v_suspicious_locations</h2>
-          <span class="desc">Geographic Fraud Concentration</span>
+  <!-- TAB 4: Hotspots & Channels -->
+  <div class="tab-content" id="tab-hotspots">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <h3>Geographic Hotspots (v_suspicious_locations)</h3>
+            <p>Concentration of fraudulent activity across cities</p>
+          </div>
         </div>
-        <table>
-          <thead>
-            <tr>
-              <th>Location</th>
-              <th>Type</th>
-              <th>Txns</th>
-              <th>Frauds</th>
-              <th>Fraud Rate</th>
-              <th>Total Vol (Rs.)</th>
-            </tr>
-          </thead>
-          <tbody id="locationsTableBody"></tbody>
-        </table>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Location</th>
+                <th>Classification</th>
+                <th>Txns</th>
+                <th>Frauds</th>
+                <th>Total Volume</th>
+              </tr>
+            </thead>
+            <tbody id="hotspotsTableBody"></tbody>
+          </table>
+        </div>
       </div>
-      <div class="card">
-        <div class="card-header">
-          <h2>v_channel_fraud_summary</h2>
-          <span class="desc">Payment Channel Breakdown</span>
+
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <h3>Channel Vulnerability (v_channel_fraud_summary)</h3>
+            <p>Attack vectors across POS, ONLINE, ATM, and UPI</p>
+          </div>
         </div>
-        <table>
-          <thead>
-            <tr>
-              <th>Channel</th>
-              <th>Total Txns</th>
-              <th>Flagged</th>
-              <th>Frauds</th>
-              <th>Fraud Rate</th>
-              <th>Fraud Vol (Rs.)</th>
-            </tr>
-          </thead>
-          <tbody id="channelsTableBody"></tbody>
-        </table>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Channel</th>
+                <th>Total Txns</th>
+                <th>Flagged</th>
+                <th>Frauds</th>
+                <th>Fraud Rate</th>
+              </tr>
+            </thead>
+            <tbody id="channelsTableBody"></tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- TAB 5: Simulator (Test Trigger) -->
-  <div class="tab-pane" id="tab-simulator">
-    <div class="card">
-      <div class="card-header">
-        <div>
-          <h2>Live Transaction Simulator (Testing Person 2 Triggers)</h2>
-          <span class="desc">Submit a mock transaction to simulate <code>trg_txn_before_insert</code> & <code>trg_txn_after_insert</code> execution</span>
+  <!-- TAB 5: Simulator -->
+  <div class="tab-content" id="tab-simulator">
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <h3>Interactive PL/SQL Trigger Interceptor</h3>
+          <p>Simulate an incoming transaction against <code>trg_txn_before_insert</code>, 3-Sigma Rule, and Sliding Window velocity checks.</p>
         </div>
       </div>
-      <form id="simulateForm" onsubmit="handleSimulate(event)">
-        <div class="form-grid">
+
+      <div class="presets-row">
+        <span style="font-size: 12px; color: var(--text-dim); display: flex; align-items: center; margin-right: 6px;">Presets:</span>
+        <button class="preset-pill" onclick="loadPreset('bucharest')">⚡ 02:00 AM Bucharest Cashout (₹94k)</button>
+        <button class="preset-pill" onclick="loadPreset('lagos')">⚡ 01:26 AM Lagos Attack (₹36k)</button>
+        <button class="preset-pill" onclick="loadPreset('normal')">✅ Normal Grocery (Chennai ₹1.2k)</button>
+      </div>
+
+      <div class="simulator-grid">
+        <form onsubmit="handleSimulate(event)">
           <div class="form-group">
             <label>Customer Account</label>
-            <select id="simAccount">
+            <select class="form-control" id="simAccount">
               <option value="1">Customer 1 (Chennai)</option>
               <option value="2">Customer 2 (Mumbai)</option>
               <option value="3">Customer 3 (Kolkata)</option>
@@ -600,211 +959,288 @@
               <option value="9">Customer 9 (Delhi)</option>
             </select>
           </div>
+
           <div class="form-group">
-            <label>Amount (Rs.)</label>
-            <input type="number" id="simAmount" value="65000" step="0.01" required>
+            <label>Transaction Amount (₹)</label>
+            <input type="number" class="form-control" id="simAmount" value="75000" step="0.01" required>
           </div>
+
           <div class="form-group">
-            <label>Location</label>
-            <select id="simLocation">
-              <option value="Lagos">Lagos (Foreign Anomaly)</option>
-              <option value="Moscow">Moscow (Foreign Anomaly)</option>
-              <option value="Bucharest">Bucharest (Foreign Anomaly)</option>
-              <option value="Dubai">Dubai (Foreign Anomaly)</option>
+            <label>Transaction Location</label>
+            <select class="form-control" id="simLocation">
+              <option value="Bucharest">Bucharest (Foreign Hub)</option>
+              <option value="Moscow">Moscow (Foreign Hub)</option>
+              <option value="Lagos">Lagos (Foreign Hub)</option>
+              <option value="Dubai">Dubai (Foreign Hub)</option>
+              <option value="Chennai">Chennai (Domestic / Home)</option>
               <option value="Mumbai">Mumbai (Domestic)</option>
-              <option value="Delhi">Delhi (Domestic)</option>
             </select>
           </div>
+
           <div class="form-group">
             <label>Merchant</label>
-            <input type="text" id="simMerchant" value="Apollo Pharmacy" required>
+            <input type="text" class="form-control" id="simMerchant" value="Apollo Pharmacy" required>
           </div>
+
           <div class="form-group">
-            <label>Channel</label>
-            <select id="simChannel">
+            <label>Payment Channel</label>
+            <select class="form-control" id="simChannel">
               <option value="ONLINE">ONLINE</option>
               <option value="ATM">ATM</option>
               <option value="POS">POS</option>
               <option value="UPI">UPI</option>
             </select>
           </div>
+
+          <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
+            ⚡ Fire Transaction Against Database Triggers
+          </button>
+        </form>
+
+        <div>
+          <label style="display: block; font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 6px;">Trigger Execution Console</label>
+          <div class="sim-terminal" id="simConsole">-- Awaiting transaction execution --\nSubmit a transaction to inspect PL/SQL trigger evaluation...</div>
         </div>
-        <button type="submit" class="btn btn-primary" style="padding: 10px 20px;">⚡ Run Transaction Through Trigger Engine</button>
-      </form>
-      <div id="simResult" style="margin-top: 18px; display: none;"></div>
+      </div>
     </div>
   </div>
 
-  <!-- TAB 6: Executive Report -->
-  <div class="tab-pane" id="tab-report">
-    <div class="card">
-      <div class="card-header">
-        <div>
-          <h2>Executive Report (proc_generate_fraud_report)</h2>
-          <span class="desc">Direct ASCII terminal output formatted from the PL/SQL stored procedure</span>
+  <!-- TAB 6: Report -->
+  <div class="tab-content" id="tab-report">
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <h3>PL/SQL Executive Summary Report (proc_generate_fraud_report)</h3>
+          <p>Formatted DBMS_OUTPUT terminal report generated by Person 2's stored procedure.</p>
         </div>
-        <button class="btn btn-secondary" onclick="loadReport()">🔄 Re-generate Report</button>
+        <button class="btn btn-secondary" onclick="loadReport()">
+          🔄 Re-execute Procedure
+        </button>
       </div>
-      <div class="terminal-box" id="reportOutput">Generating report...</div>
+
+      <div class="sim-terminal" id="reportTerminal" style="max-height: 550px; color: #a5f3fc;">
+        Generating executive report...
+      </div>
     </div>
   </div>
 
-  <!-- TAB 7: Audit Log -->
-  <div class="tab-pane" id="tab-audit">
-    <div class="card">
-      <div class="card-header">
-        <div>
-          <h2>v_alert_audit_trail (ALERT_AUDIT_LOG)</h2>
-          <span class="desc">Historical lifecycle events logged automatically by <code>trg_alert_audit_log</code></span>
+  <!-- TAB 7: Audit -->
+  <div class="tab-content" id="tab-audit">
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <h3>Compliance Audit Trail (ALERT_AUDIT_LOG)</h3>
+          <p>Immutable history of investigator status transitions recorded by <code>trg_alert_audit_log</code>.</p>
         </div>
       </div>
-      <table>
-        <thead>
-          <tr>
-            <th>Log ID</th>
-            <th>Alert ID</th>
-            <th>Action</th>
-            <th>Performed By</th>
-            <th>Timestamp</th>
-          </tr>
-        </thead>
-        <tbody id="auditTableBody"></tbody>
-      </table>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Log ID</th>
+              <th>Alert ID</th>
+              <th>Action</th>
+              <th>Operator / Reviewer</th>
+              <th>Timestamp</th>
+            </tr>
+          </thead>
+          <tbody id="auditTableBody"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 
 </div>
 
+<!-- Toast -->
+<div class="toast" id="toastBox">
+  <span id="toastIcon" style="font-size: 18px;">✅</span>
+  <div>
+    <strong id="toastTitle" style="font-size: 13px; color: #fff;">Success</strong>
+    <p id="toastMessage" style="font-size: 12px; color: var(--text-muted);">Action completed successfully.</p>
+  </div>
+</div>
+
 <script>
   function switchTab(tabId) {
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-    event.target.classList.add('active');
-    document.getElementById('tab-' + tabId).classList.add('active');
+    document.querySelectorAll('.tab-trigger').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(p => p.classList.remove('active'));
+    
+    // Find button
+    const btn = Array.from(document.querySelectorAll('.tab-trigger')).find(b => b.getAttribute('onclick').includes(tabId));
+    if (btn) btn.classList.add('active');
+    
+    const panel = document.getElementById('tab-' + tabId);
+    if (panel) panel.classList.add('active');
   }
 
-  async function loadAll() {
+  function showToast(title, msg, isDanger = false) {
+    const toast = document.getElementById('toastBox');
+    document.getElementById('toastTitle').innerText = title;
+    document.getElementById('toastMessage').innerText = msg;
+    document.getElementById('toastIcon').innerText = isDanger ? '🚨' : '✅';
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3500);
+  }
+
+  function loadPreset(type) {
+    if (type === 'bucharest') {
+      document.getElementById('simAccount').value = "3";
+      document.getElementById('simAmount').value = "94232.44";
+      document.getElementById('simLocation').value = "Bucharest";
+      document.getElementById('simMerchant').value = "Apollo Pharmacy";
+      document.getElementById('simChannel').value = "ONLINE";
+    } else if (type === 'lagos') {
+      document.getElementById('simAccount').value = "1";
+      document.getElementById('simAmount').value = "36923.50";
+      document.getElementById('simLocation').value = "Lagos";
+      document.getElementById('simMerchant').value = "Swiggy";
+      document.getElementById('simChannel').value = "ONLINE";
+    } else {
+      document.getElementById('simAccount').value = "1";
+      document.getElementById('simAmount').value = "1250.00";
+      document.getElementById('simLocation').value = "Chennai";
+      document.getElementById('simMerchant').value = "BigBasket";
+      document.getElementById('simChannel').value = "POS";
+    }
+  }
+
+  async function loadAllData() {
     await Promise.all([
       loadKpis(),
-      loadHighRisk(),
       loadOpenAlerts(),
-      loadCustomerProfiles(),
+      loadHighRisk(),
+      loadCustomers(),
       loadHotspots(),
       loadReport(),
-      loadAuditTrail()
+      loadAudit()
     ]);
   }
 
   async function loadKpis() {
     const res = await fetch('/api/kpis');
-    const data = await res.json();
-    document.getElementById('kpiTotalTxns').innerText = data.totalTxns;
-    document.getElementById('kpiFlagged').innerText = data.flaggedTxns;
-    document.getElementById('kpiFlagRate').innerText = `${data.flagRate}% flag rate`;
-    document.getElementById('kpiFrauds').innerText = data.fraudTxns;
-    document.getElementById('kpiVolume').innerText = `₹${parseFloat(data.totalVol).toLocaleString('en-IN')}`;
-    document.getElementById('kpiFraudVol').innerText = `₹${parseFloat(data.fraudVol).toLocaleString('en-IN')}`;
-    document.getElementById('kpiPrecision').innerText = `${data.precision}%`;
-    document.getElementById('kpiRecall').innerText = `Recall: ${data.recall}%`;
-  }
-
-  async function loadHighRisk() {
-    const res = await fetch('/api/views/high-risk-transactions');
-    const rows = await res.json();
-    document.getElementById('highRiskBadge').innerText = `${rows.length} Anomalous Records`;
-    const tbody = document.getElementById('highRiskTableBody');
-    tbody.innerHTML = rows.map(r => `
-      <tr>
-        <td><strong>#${r.txn_id}</strong></td>
-        <td>${r.customer_name}</td>
-        <td>${r.customer_home_city}</td>
-        <td style="color: ${r.amount >= 20000 ? '#f87171' : 'inherit'}; font-weight: 600;">
-          ₹${parseFloat(r.amount).toLocaleString('en-IN')}
-        </td>
-        <td>
-          ${r.location}
-          ${r.is_foreign ? '<span class="tag tag-danger" style="margin-left:4px;">FOREIGN</span>' : ''}
-        </td>
-        <td><span class="tag tag-purple">${r.channel}</span></td>
-        <td style="font-size:11px; color:#9ca3af;">${r.txn_time.substring(0, 19).replace('T', ' ')}</td>
-        <td><code>${r.anomaly_score ? r.anomaly_score.toFixed(4) : '--'}</code></td>
-        <td>
-          <span class="tag ${r.alert_status === 'OPEN' ? 'tag-warning' : (r.alert_status === 'CONFIRMED_FRAUD' ? 'tag-danger' : 'tag-success')}">
-            ${r.alert_status}
-          </span>
-        </td>
-        <td style="font-size: 11px; color: #fca5a5;">${r.alert_reason}</td>
-      </tr>
-    `).join('');
+    const d = await res.json();
+    document.getElementById('kpiFlagged').innerText = d.flaggedTxns;
+    document.getElementById('kpiFlagRate').innerText = `${d.flagRate}%`;
+    document.getElementById('kpiPrecision').innerText = `${d.precision}%`;
+    document.getElementById('kpiFraudVol').innerText = `₹${parseFloat(d.fraudVol).toLocaleString('en-IN')}`;
+    document.getElementById('kpiTotalTxns').innerText = d.totalTxns;
+    document.getElementById('countAlerts').innerText = d.openAlerts;
   }
 
   async function loadOpenAlerts() {
     const res = await fetch('/api/views/open-alerts');
     const alerts = await res.json();
-    const grid = document.getElementById('alertsGrid');
+    const feed = document.getElementById('openAlertsFeed');
+    
     if (alerts.length === 0) {
-      grid.innerHTML = '<p style="color: var(--success); padding: 20px;">All alerts have been reviewed! No pending OPEN alerts in queue.</p>';
+      feed.innerHTML = `
+        <div style="text-align: center; padding: 40px; color: var(--success);">
+          <div style="font-size: 32px; margin-bottom: 8px;">🎉</div>
+          <h4 style="font-size: 16px; color: #fff;">Queue Clear!</h4>
+          <p style="font-size: 13px; color: var(--text-muted);">All flagged transactions have been reviewed and resolved.</p>
+        </div>
+      `;
       return;
     }
-    grid.innerHTML = alerts.map(a => `
-      <div class="alert-item ${a.urgency.toLowerCase()}">
-        <div class="alert-top">
-          <div>
-            <strong style="font-size: 15px;">Alert #${a.alert_id}</strong>
-            <span style="font-size: 12px; color: var(--text-muted); margin-left: 6px;">(Txn #${a.txn_id})</span>
+
+    feed.innerHTML = alerts.map(a => `
+      <div class="incident-card open-alert">
+        <div class="incident-main">
+          <div class="merchant-avatar">${a.merchant.charAt(0)}</div>
+          <div class="incident-details">
+            <h4>
+              ${a.customer_name} 
+              <span class="badge ${a.urgency === 'CRITICAL' ? 'badge-danger' : 'badge-warning'}">${a.urgency} RISK</span>
+              <span class="badge badge-purple">${a.channel}</span>
+            </h4>
+            <p>
+              <span>📍 ${a.location}</span>
+              <span>🏠 Home: ${a.customer_home_city}</span>
+              <span>⚡ Alert #${a.alert_id} (Txn #${a.txn_id})</span>
+              <span style="color: #fb7185;">⚠️ ${a.alert_reason}</span>
+            </p>
           </div>
-          <span class="tag ${a.urgency === 'CRITICAL' ? 'tag-danger' : 'tag-warning'}">${a.urgency}</span>
         </div>
-        <div class="alert-reason-box">${a.alert_reason}</div>
-        <div class="alert-meta">
-          <div>Customer: <strong>${a.customer_name}</strong></div>
-          <div>Home City: <strong>${a.customer_home_city}</strong></div>
-          <div>Amount: <strong style="color: #f87171;">₹${parseFloat(a.amount).toLocaleString('en-IN')}</strong></div>
-          <div>Location: <strong>${a.location}</strong></div>
-          <div>Channel: <strong>${a.channel}</strong></div>
-          <div>Score: <strong>${a.anomaly_score ? a.anomaly_score.toFixed(4) : '--'}</strong></div>
+
+        <div class="incident-amount-box">
+          <div class="incident-amount">₹${parseFloat(a.amount).toLocaleString('en-IN')}</div>
+          <div class="incident-time">ML Score: <strong>${a.anomaly_score ? a.anomaly_score.toFixed(4) : '--'}</strong></div>
         </div>
-        <div class="action-btns">
-          <button class="btn btn-danger" onclick="updateAlertStatus(${a.alert_id}, 'CONFIRMED_FRAUD')">🚨 Confirm Fraud</button>
-          <button class="btn btn-primary" onclick="updateAlertStatus(${a.alert_id}, 'REVIEWED')">👁️ Mark Reviewed</button>
-          <button class="btn btn-secondary" onclick="updateAlertStatus(${a.alert_id}, 'FALSE_ALARM')">Dismiss</button>
+
+        <div class="incident-actions">
+          <button class="btn btn-danger-outline" onclick="reviewAlert(${a.alert_id}, 'CONFIRMED_FRAUD')">
+            🚨 Confirm Fraud
+          </button>
+          <button class="btn btn-secondary" onclick="reviewAlert(${a.alert_id}, 'REVIEWED')">
+            👁️ Review
+          </button>
+          <button class="btn btn-secondary" onclick="reviewAlert(${a.alert_id}, 'FALSE_ALARM')">
+            Dismiss
+          </button>
         </div>
       </div>
     `).join('');
   }
 
-  async function updateAlertStatus(alertId, newStatus) {
+  async function reviewAlert(alertId, newStatus) {
     const res = await fetch('/api/alerts/update-status', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         alert_id: alertId,
         new_status: newStatus,
-        performed_by: 'ANALYST_ARUNIMA',
-        remarks: 'Manual analyst intervention from web console'
+        performed_by: 'ARUNIMA_GHOSH'
       })
     });
     if (res.ok) {
-      loadAll();
+      showToast('Status Updated', `Alert #${alertId} marked as ${newStatus}`);
+      loadAllData();
     }
   }
 
-  async function loadCustomerProfiles() {
+  async function loadHighRisk() {
+    const res = await fetch('/api/views/high-risk-transactions');
+    const rows = await res.json();
+    document.getElementById('countHighRisk').innerText = rows.length;
+    document.getElementById('highRiskTableBody').innerHTML = rows.map(r => `
+      <tr>
+        <td><strong>#${r.txn_id}</strong></td>
+        <td>${r.customer_name}</td>
+        <td>${r.customer_home_city}</td>
+        <td style="color: #fb7185; font-weight: 700;">₹${parseFloat(r.amount).toLocaleString('en-IN')}</td>
+        <td>
+          ${r.location}
+          ${r.is_foreign ? '<span class="badge badge-danger" style="margin-left: 6px;">FOREIGN</span>' : ''}
+        </td>
+        <td><span class="badge badge-purple">${r.channel}</span></td>
+        <td style="font-family: monospace; font-size: 11px; color: var(--text-dim);">${r.txn_time.substring(0, 19).replace('T', ' ')}</td>
+        <td><code style="color: #38bdf8;">${r.anomaly_score ? r.anomaly_score.toFixed(4) : '--'}</code></td>
+        <td>
+          <span class="badge ${r.alert_status === 'CONFIRMED_FRAUD' ? 'badge-danger' : (r.alert_status === 'OPEN' ? 'badge-warning' : 'badge-success')}">
+            ${r.alert_status}
+          </span>
+        </td>
+        <td style="font-size: 12px; color: #fca5a5;">${r.alert_reason}</td>
+      </tr>
+    `).join('');
+  }
+
+  async function loadCustomers() {
     const res = await fetch('/api/views/customer-profiles');
     const custs = await res.json();
-    const tbody = document.getElementById('custProfileTableBody');
-    tbody.innerHTML = custs.map(c => `
+    document.getElementById('customersTableBody').innerHTML = custs.map(c => `
       <tr>
-        <td><strong>#${c.customer_id}</strong></td>
-        <td>${c.customer_name}</td>
+        <td><strong>#${c.customer_id} ${c.customer_name}</strong></td>
         <td>${c.home_city}</td>
         <td>${c.total_txns}</td>
         <td>₹${parseFloat(c.total_spent).toLocaleString('en-IN')}</td>
-        <td>${c.flagged_txns > 0 ? `<span class="tag tag-warning">${c.flagged_txns}</span>` : '0'}</td>
-        <td>${c.fraud_txns > 0 ? `<span class="tag tag-danger">${c.fraud_txns}</span>` : '0'}</td>
-        <td>₹${parseFloat(c.fraud_amount).toLocaleString('en-IN')}</td>
+        <td>${c.flagged_txns > 0 ? `<span class="badge badge-warning">${c.flagged_txns}</span>` : '0'}</td>
+        <td>${c.fraud_txns > 0 ? `<span class="badge badge-danger">${c.fraud_txns}</span>` : '0'}</td>
+        <td style="font-weight: 700; color: ${c.fraud_amount > 0 ? '#fb7185' : 'inherit'};">₹${parseFloat(c.fraud_amount).toLocaleString('en-IN')}</td>
         <td>
-          <span class="tag ${c.risk_tier === 'CRITICAL' ? 'tag-danger' : (c.risk_tier === 'HIGH' ? 'tag-warning' : 'tag-success')}">
+          <span class="badge ${c.risk_tier === 'CRITICAL' ? 'badge-danger' : (c.risk_tier === 'HIGH' ? 'badge-warning' : 'badge-success')}">
             ${c.risk_tier}
           </span>
         </td>
@@ -815,13 +1251,12 @@
   async function loadHotspots() {
     const res1 = await fetch('/api/views/suspicious-locations');
     const locs = await res1.json();
-    document.getElementById('locationsTableBody').innerHTML = locs.map(l => `
+    document.getElementById('hotspotsTableBody').innerHTML = locs.map(l => `
       <tr>
         <td><strong>${l.location}</strong></td>
-        <td>${l.is_foreign ? '<span class="tag tag-danger">FOREIGN</span>' : '<span class="tag tag-success">DOMESTIC</span>'}</td>
+        <td>${l.is_foreign ? '<span class="badge badge-danger">FOREIGN HUB</span>' : '<span class="badge badge-success">DOMESTIC</span>'}</td>
         <td>${l.total_txns}</td>
-        <td style="color: ${l.fraud_txns > 0 ? '#f87171' : 'inherit'}; font-weight:600;">${l.fraud_txns}</td>
-        <td>${l.fraud_rate}%</td>
+        <td style="color: ${l.fraud_txns > 0 ? '#fb7185' : 'inherit'}; font-weight: 700;">${l.fraud_txns}</td>
         <td>₹${parseFloat(l.total_volume).toLocaleString('en-IN')}</td>
       </tr>
     `).join('');
@@ -830,12 +1265,11 @@
     const chans = await res2.json();
     document.getElementById('channelsTableBody').innerHTML = chans.map(ch => `
       <tr>
-        <td><span class="tag tag-purple">${ch.channel}</span></td>
+        <td><span class="badge badge-purple">${ch.channel}</span></td>
         <td>${ch.total_txns}</td>
         <td>${ch.flagged_txns}</td>
-        <td style="color: ${ch.fraud_txns > 0 ? '#f87171' : 'inherit'}; font-weight:600;">${ch.fraud_txns}</td>
+        <td style="color: #fb7185; font-weight: 700;">${ch.fraud_txns}</td>
         <td>${ch.fraud_rate}%</td>
-        <td>₹${parseFloat(ch.fraud_vol).toLocaleString('en-IN')}</td>
       </tr>
     `).join('');
   }
@@ -843,20 +1277,19 @@
   async function loadReport() {
     const res = await fetch('/api/report');
     const text = await res.text();
-    document.getElementById('reportOutput').innerText = text;
+    document.getElementById('reportTerminal').innerText = text;
   }
 
-  async function loadAuditTrail() {
+  async function loadAudit() {
     const res = await fetch('/api/views/audit-trail');
     const logs = await res.json();
-    const tbody = document.getElementById('auditTableBody');
-    tbody.innerHTML = logs.map(l => `
+    document.getElementById('auditTableBody').innerHTML = logs.map(l => `
       <tr>
         <td><code>#${l.log_id}</code></td>
         <td><strong>Alert #${l.alert_id}</strong></td>
-        <td><span class="tag tag-purple">${l.action}</span></td>
+        <td><span class="badge badge-purple">${l.action}</span></td>
         <td>${l.performed_by}</td>
-        <td style="font-size:11px; color:#9ca3af;">${l.action_time.replace('T', ' ').substring(0, 19)}</td>
+        <td style="font-family: monospace; font-size: 11px; color: var(--text-dim);">${l.action_time.replace('T', ' ').substring(0, 19)}</td>
       </tr>
     `).join('');
   }
@@ -876,32 +1309,35 @@
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
-    const data = await res.json();
-    const simBox = document.getElementById('simResult');
-    simBox.style.display = 'block';
+    const d = await res.json();
+    const consoleBox = document.getElementById('simConsole');
 
-    if (data.flagged) {
-      simBox.innerHTML = `
-        <div style="background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; padding: 14px;">
-          <h3 style="color: #ef4444; font-size: 15px; margin-bottom: 6px;">🚨 TRANSACTION FLAGGED BY TRIGGER!</h3>
-          <p style="font-size: 13px;"><strong>Trigger Action:</strong> <code>is_flagged = 'Y'</code>, Anomaly Score: <strong>${data.transaction.anomaly_score}</strong></p>
-          <p style="font-size: 13px;"><strong>Alert Created:</strong> Reason: <em>${data.reason}</em></p>
-          <p style="font-size: 12px; color: #9ca3af; margin-top: 4px;">Logged into <code>ALERT_AUDIT_LOG</code> automatically.</p>
-        </div>
-      `;
+    if (d.flagged) {
+      consoleBox.innerText = `[TRIGGER INTERCEPTED] trg_txn_before_insert\n` +
+        `--------------------------------------------------\n` +
+        `STATUS      : FLAGGED (is_flagged = 'Y')\n` +
+        `TXN ID      : #${d.transaction.txn_id}\n` +
+        `AMOUNT      : ₹${parseFloat(d.transaction.amount).toLocaleString('en-IN')}\n` +
+        `LOCATION    : ${d.transaction.location}\n` +
+        `REASON      : ${d.reason}\n` +
+        `ACTION      : trg_txn_after_insert opened FRAUD_ALERT\n` +
+        `AUDIT LOG   : Recorded ALERT_CREATED with timestamp`;
+      showToast('Threat Intercepted', 'Transaction was flagged by database triggers', true);
     } else {
-      simBox.innerHTML = `
-        <div style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 14px;">
-          <h3 style="color: #10b981; font-size: 15px; margin-bottom: 6px;">✅ NORMAL TRANSACTION PASSED</h3>
-          <p style="font-size: 13px;">No suspicious heuristics detected. Transaction committed with <code>is_flagged = 'N'</code>.</p>
-        </div>
-      `;
+      consoleBox.innerText = `[TRIGGER EXECUTED] trg_txn_before_insert\n` +
+        `--------------------------------------------------\n` +
+        `STATUS      : COMMITTED (is_flagged = 'N')\n` +
+        `TXN ID      : #${d.transaction.txn_id}\n` +
+        `AMOUNT      : ₹${parseFloat(d.transaction.amount).toLocaleString('en-IN')}\n` +
+        `LOCATION    : ${d.transaction.location}\n` +
+        `EVALUATION  : Passed all 3-Sigma, velocity, and location checks.`;
+      showToast('Normal Transaction', 'Passed all heuristic checks');
     }
-    loadAll();
+    loadAllData();
   }
 
-  // Initial load
-  loadAll();
+  // Initial Load
+  loadAllData();
 </script>
 </body>
 </html>
